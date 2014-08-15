@@ -4,13 +4,13 @@ username="username"
 password="password"
 
 google="http://74.125.236.208"
-wget_opts="--no-check-certificate -t3 -T3 -qO-"
+curl_opts="-k -m3 -s --stderr /dev/null"
 
 trap logout SIGHUP SIGINT SIGQUIT SIGTERM
 
 login() {
     fgt_redirect=$(
-        wget ${wget_opts} --max-redirect=0 -S ${google} 2>&1 >/dev/null
+        curl ${curl_opts} --max-redirs 0 -D- ${google}
     )
     if [ -z "${fgt_redirect}" ];
     then
@@ -24,14 +24,14 @@ login() {
             sed -n -e 's/.*Location: \(.*\).*/\1/p'
         )
         fgt_auth_resp=$(
-            wget ${wget_opts} ${fgt_auth_url}
+            curl ${curl_opts} ${fgt_auth_url}
         )
         fgt_auth_magic=$(
             echo "${fgt_auth_resp}" |
             sed -n -e 's/.*NAME="magic" \+VALUE="\([^"]\+\).*/\1/p'
         )
         fgt_post_resp=$(
-            wget ${wget_opts} --post-data \
+            curl ${curl_opts} -d \
                 "username=${username}&password=${password}&magic=${fgt_auth_magic}&4Tredir=/" \
                 "${fgt_auth_url}"
         )
@@ -55,7 +55,7 @@ login() {
 
 keepalive() {
     fgt_keepalive_resp=$(
-        wget ${wget_opts} -S ${fgt_keepalive_url} 2>&1 >/dev/null
+        curl ${curl_opts} -D- ${fgt_keepalive_url}
     )
     if [ -z "$(echo "${fgt_keepalive_resp}" | grep "HTTP\/1.1 200 OK")" ];
     then
@@ -69,7 +69,7 @@ logout() {
     if [ -n "${fgt_logout_url}" ];
     then
         logger -t firewall-auth "Logging out"
-        wget ${wget_opts} ${fgt_logout_url} 2>&1 >/dev/null
+        curl ${curl_opts} ${fgt_logout_url} >/dev/null
     fi
     exit
 }
