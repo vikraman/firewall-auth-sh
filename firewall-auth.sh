@@ -28,7 +28,7 @@ login() {
         )
         fgt_auth_magic=$(
             echo "${fgt_auth_resp}" |
-            sed -n -e 's/.*NAME="magic" \+VALUE="\([^"]\+\).*/\1/p'
+            sed -n -e 's/.*name="magic" \+value="\([^"]\+\).*/\1/p'
         )
         fgt_post_resp=$(
             wget ${wget_opts} --post-data \
