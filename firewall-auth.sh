@@ -21,7 +21,8 @@ login() {
     else
         fgt_auth_url=$(
             echo "${fgt_redirect}" |
-            sed -n -e 's/.*Location: \(.*\).*/\1/p'
+            sed -n -e 's/.*Location: \(.*\).*/\1/p' |
+            tr -d '\r\n'
         )
         fgt_auth_resp=$(
             curl ${curl_opts} ${fgt_auth_url}
@@ -37,7 +38,8 @@ login() {
         )
         fgt_keepalive_url=$(
             echo "${fgt_post_resp}" |
-            sed -n -e 's/.*location.href="\([^"]\+\).*/\1/p'
+            sed -n -e 's/.*location.href="\([^"]\+\).*/\1/p' |
+            tr -d '\r\n'
         )
         if [ -z "${fgt_keepalive_url}" ];
         then
@@ -46,7 +48,8 @@ login() {
             logger -t firewall-auth "Logged in"
             fgt_logout_url=$(
                 echo "${fgt_post_resp}" |
-                sed -n -e 's/.*<p><a href="\([^"]\+\).*/\1/p'
+                sed -n -e 's/.*<p><a href="\([^"]\+\).*/\1/p' |
+                tr -d '\r\n'
             )
             state="keepalive"
         fi
